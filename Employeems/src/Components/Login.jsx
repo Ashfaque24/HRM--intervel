@@ -28,6 +28,8 @@ const Login = () => {
       console.log("Server response:", result.data);
 
       if (result.data.loginStatus === true) {
+        console.log(result.data)
+        localStorage.setItem('userEmail',result.data.email)
   const userRole = result.data.role;
   if (userRole === 'Admin') {
     navigate('/admin');

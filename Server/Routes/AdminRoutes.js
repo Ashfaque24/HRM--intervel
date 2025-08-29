@@ -34,7 +34,8 @@ router.post("/login", (req, res) => {
             res.cookie("token", token, { httpOnly: true });
             return res.json({
               loginStatus: true,
-              role: user.role_name // <-- Use this in frontend
+              role: user.role_name, // <-- Use this in frontend
+              email:user.email
             });
           } else {
             return res.json({ loginStatus: false, Error: "Wrong email or password" });
@@ -50,38 +51,6 @@ router.post("/login", (req, res) => {
 
 // SIGNUP ROUTE
 
-
-// router.post("/signup", (req, res) => {
-//   const { name, email, password } = req.body;
-  
-//   if (!name || !email || !password) {
-//     return res.json({ signupStatus: false, Error: "Missing required fields" });
-//   }
-
-//   bcrypt.hash(password, saltRounds, (err, hashedPassword) => {
-//     if (err) {
-//       console.error("Hashing error:", err);
-//       return res.json({ signupStatus: false, Error: "Hashing error" });
-//     }
-
-//     // Option 1: Insert only name, email, and password_hash
-//     const sql = "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)";
-//     con.query(sql, [name, email, hashedPassword], (err, result) => {
-//       if (err) {
-//         console.error("Database query error:", err);
-//         return res.json({ signupStatus: false, Error: "Query error" });
-//       }
-
-//       return res.json({
-//         signupStatus: true,
-//         message: "User account created successfully",
-//       });
-//     });
-//   });
-// });
-
-
-// SIGNUP ROUTE - First user becomes admin, others become employees
 router.post("/signup", (req, res) => {
   const { name, email, password } = req.body;
   

@@ -38,9 +38,7 @@ const AddRole = () => {
   axios.defaults.withCredentials = true;
 
   const menuItems = [
-    { text: 'Dashboard', icon: <SpeedIcon />, path: '/dashboard' },
     { text: 'Add New Role', icon: <AddCircleIcon />, path: '/add-role' },
-    { text: 'Profile', icon: <AccountCircleIcon />, path: '/profile' },
     { text: 'Logout', icon: <ExitToAppIcon />, path: '/logout' }
   ];
 
