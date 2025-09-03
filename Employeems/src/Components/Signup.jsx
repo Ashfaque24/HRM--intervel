@@ -135,14 +135,74 @@ const Signup = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
   const navigate = useNavigate();
   axios.defaults.withCredentials = true;
+
+  // Validation functions
+  const validateName = (name) => {
+    if (!name) return "Name is required";
+    if (name.length < 2) return "Name must be at least 2 characters long";
+    if (name.length > 50) return "Name must be less than 50 characters";
+    return "";
+  };
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) return "Email is required";
+    if (!emailRegex.test(email)) return "Please enter a valid email address";
+    return "";
+  };
+
+  const validatePassword = (password) => {
+    if (!password) return "Password is required";
+    if (password.length < 8) return "Password must be at least 8 characters long";
+    if (!/(?=.*[a-z])/.test(password)) return "Password must contain at least one lowercase letter";
+    if (!/(?=.*[A-Z])/.test(password)) return "Password must contain at least one uppercase letter";
+    if (!/(?=.*\d)/.test(password)) return "Password must contain at least one number";
+    return "";
+  };
+
+  const handleInputChange = (field, value) => {
+    setValues({ ...values, [field]: value });
+    
+    // Real-time validation
+    let fieldError = "";
+    if (field === 'name') {
+      fieldError = validateName(value);
+    } else if (field === 'email') {
+      fieldError = validateEmail(value);
+    } else if (field === 'password') {
+      fieldError = validatePassword(value);
+    }
+    
+    setFieldErrors({ ...fieldErrors, [field]: fieldError });
+    
+    // Clear general error when user starts typing
+    if (error) setError(null);
+    if (success) setSuccess(null);
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
     setError(null);
     setSuccess(null);
+
+    // Validate all fields
+    const nameError = validateName(values.name);
+    const emailError = validateEmail(values.email);
+    const passwordError = validatePassword(values.password);
+    
+    if (nameError || emailError || passwordError) {
+      setFieldErrors({
+        name: nameError,
+        email: emailError,
+        password: passwordError
+      });
+      setLoading(false);
+      return;
+    }
 
     try {
       const result = await axios.post('http://localhost:3000/auth/signup', values);
@@ -200,8 +260,11 @@ const Signup = () => {
             variant="outlined"
             margin="normal"
             required
+            value={values.name}
+            error={!!fieldErrors.name}
+            helperText={fieldErrors.name}
             disabled={loading}
-            onChange={(e) => setValues({ ...values, name: e.target.value })}
+            onChange={(e) => handleInputChange('name', e.target.value)}
           />
           <TextField
             label="Email"
@@ -211,8 +274,11 @@ const Signup = () => {
             variant="outlined"
             margin="normal"
             required
+            value={values.email}
+            error={!!fieldErrors.email}
+            helperText={fieldErrors.email}
             disabled={loading}
-            onChange={(e) => setValues({ ...values, email: e.target.value })}
+            onChange={(e) => handleInputChange('email', e.target.value)}
           />
           <TextField
             label="Password"
@@ -222,8 +288,11 @@ const Signup = () => {
             variant="outlined"
             margin="normal"
             required
+            value={values.password}
+            error={!!fieldErrors.password}
+            helperText={fieldErrors.password}
             disabled={loading}
-            onChange={(e) => setValues({ ...values, password: e.target.value })}
+            onChange={(e) => handleInputChange('password', e.target.value)}
           />
           <Button
             type="submit"
@@ -231,7 +300,7 @@ const Signup = () => {
             variant="contained"
             color="success"
             sx={{ marginTop: 2 }}
-            disabled={loading}
+            disabled={loading || !!fieldErrors.name || !!fieldErrors.email || !!fieldErrors.password}
           >
             {loading ? 'CREATING ACCOUNT...' : 'SIGN UP'}
           </Button>

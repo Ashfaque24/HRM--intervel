@@ -1,5 +1,5 @@
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import {
   Box,
@@ -8,225 +8,215 @@ import {
   TextField,
   Button,
   Alert,
-  Toolbar,
-  AppBar,
-  Drawer,
   List,
   ListItem,
-  ListItemIcon,
   ListItemText,
-  CssBaseline,
-  Divider
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
-import SpeedIcon from '@mui/icons-material/Speed';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 
-const drawerWidth = 240;
-
-const AddRole = () => {
-  const [roleData, setRoleData] = useState({ role_name: '', description: '' });
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [loading, setLoading] = useState(false);
+export default function AddRole() {
+  const [roleName, setRoleName] = useState('');
+  const [description, setDescription] = useState('');
   const [roles, setRoles] = useState([]);
-  const [loadingRoles, setLoadingRoles] = useState(true);
-  const location = useLocation();
-  const navigate = useNavigate();
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editData, setEditData] = useState({ id: null, role_name: '', description: '' });
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState(null);
 
-  axios.defaults.withCredentials = true;
-
-  const menuItems = [
-    { text: 'Add New Role', icon: <AddCircleIcon />, path: '/add-role' },
-    { text: 'Logout', icon: <ExitToAppIcon />, path: '/logout' }
-  ];
-
-  // Fetch existing roles
+  // Fetch roles on load
   useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        const response = await axios.get('http://localhost:3000/admin/roles');
-        if (response.data.success) {
-          setRoles(response.data.roles);
-        }
-      } catch (err) {
-        console.error("Failed to fetch roles:", err);
-      } finally {
-        setLoadingRoles(false);
-      }
-    };
     fetchRoles();
   }, []);
 
-  // Handle form submission
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
-
-    if (!roleData.role_name.trim()) {
-      setError('Role name is required');
-      setLoading(false);
-      return;
-    }
-
+  const fetchRoles = async () => {
     try {
-      const result = await axios.post('http://localhost:3000/admin/add-role', roleData);
-      if (result.data.success) {
-        setSuccess('Role added successfully!');
-        setRoleData({ role_name: '', description: '' });
-        // Refresh roles list after adding
-        const updatedRoles = await axios.get('http://localhost:3000/admin/roles');
-        if (updatedRoles.data.success) {
-          setRoles(updatedRoles.data.roles);
-        }
-      } else {
-        setError(result.data.Error || 'Failed to add role');
-      }
-    } catch (err) {
-      console.error('Add role request failed:', err);
-      setError(err.response?.data?.Error || 'Server error. Please try again.');
-    } finally {
-      setLoading(false);
+      const res = await axios.get('http://localhost:3000/admin/roles');
+      if (res.data.success) setRoles(res.data.roles);
+      else setError(res.data.Error || 'Failed to fetch roles');
+    } catch {
+      setError('Failed to fetch roles');
     }
   };
 
-  const handleInputChange = (field, value) => {
-    setRoleData(prev => ({ ...prev, [field]: value }));
+  const handleAddRole = async () => {
+    if (!roleName.trim()) {
+      setError('Role name is required');
+      return;
+    }
+    try {
+      const res = await axios.post('http://localhost:3000/admin/add-role', {
+        role_name: roleName,
+        description: description,
+      });
+      if (res.data.success) {
+        setSuccess('Role added successfully');
+        setRoleName('');
+        setDescription('');
+        fetchRoles();
+      } else {
+        setError(res.data.Error || 'Failed to add role');
+      }
+    } catch {
+      setError('Failed to add role');
+    }
+  };
+
+  // FRONTEND ONLY DELETE
+  const handleDeleteRole = () => {
+    if (!roleToDelete) return;
+
+    // Remove from the frontend list only
+    setRoles(prevRoles => prevRoles.filter(role => role.id !== roleToDelete.id));
+
+    setDeleteDialogOpen(false);
+    setSuccess(`Role "${roleToDelete.role_name}" removed from list (not deleted from database)`);
+  };
+
+  const handleEditSave = async () => {
+    try {
+      const res = await axios.put(`http://localhost:3000/admin/roles/${editData.id}`, {
+        role_name: editData.role_name,
+        description: editData.description,
+      });
+      if (res.data.success) {
+        setRoles(roles.map(r => (r.id === editData.id ? { ...r, ...editData } : r)));
+        setEditDialogOpen(false);
+      } else {
+        setError(res.data.Error || 'Failed to update role');
+      }
+    } catch {
+      setError('Failed to update role');
+    }
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
-      
-      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-        <Toolbar>
-          <Typography variant="h6" noWrap component="div">
-            INTERVAL - Add New Role
-          </Typography>
-        </Toolbar>
-      </AppBar>
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h5" gutterBottom>
+        Add New Role
+      </Typography>
 
-      {/* Sidebar */}
-      <Drawer
-        variant="permanent"
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
-            width: drawerWidth,
-            boxSizing: 'border-box',
-            backgroundColor: '#212529',
-            color: '#fff',
-          },
-        }}
-      >
-        <Toolbar />
-        <Box sx={{ overflow: 'auto' }}>
-          <List>
-            {menuItems.map((item) => (
-              <ListItem
-                key={item.text}
-                button
-                component={Link}
-                to={item.path}
-                sx={{
-                  backgroundColor: location.pathname === item.path ? '#495057' : 'transparent',
-                  '&:hover': { backgroundColor: '#495057' }
-                }}
-              >
-                <ListItemIcon sx={{ color: '#fff' }}>
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText primary={item.text} />
-              </ListItem>
-            ))}
-          </List>
-        </Box>
-      </Drawer>
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
 
-      {/* Main Content */}
-      <Box component="main" sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3 }}>
-        <Toolbar />
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <TextField
+          label="Role Name"
+          fullWidth
+          margin="normal"
+          value={roleName}
+          onChange={(e) => setRoleName(e.target.value)}
+        />
+        <TextField
+          label="Description"
+          fullWidth
+          margin="normal"
+          multiline
+          rows={3}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <Button
+          variant="contained"
+          color="primary"
+          sx={{ mt: 2 }}
+          onClick={handleAddRole}
+        >
+          Add Role
+        </Button>
+      </Paper>
 
-        <Paper elevation={3} sx={{ p: 4, maxWidth: 600, mb: 4 }}>
-          <Typography variant="h5" gutterBottom>
-            Add New Role
-          </Typography>
-
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-          {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
-
-          <Box component="form" onSubmit={handleSubmit}>
-            <TextField
-              label="Role Name"
-              fullWidth
-              required
-              margin="normal"
-              value={roleData.role_name}
-              onChange={(e) => handleInputChange('role_name', e.target.value)}
-              disabled={loading}
-              placeholder="e.g., Project Manager, Senior Developer, Team Lead"
+      <Typography variant="h6" gutterBottom>
+        Existing Roles
+      </Typography>
+      <List>
+        {roles.map((role) => (
+          <ListItem
+            key={role.id}
+            sx={{ borderBottom: '1px solid #ddd' }}
+            secondaryAction={
+              <>
+                <IconButton
+                  color="primary"
+                  onClick={() => {
+                    setEditData({ id: role.id, role_name: role.role_name, description: role.description || '' });
+                    setEditDialogOpen(true);
+                  }}
+                >
+                  <EditIcon />
+                </IconButton>
+                <IconButton
+                  color="error"
+                  onClick={() => {
+                    setRoleToDelete(role);
+                    setDeleteDialogOpen(true);
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </>
+            }
+          >
+            <ListItemText
+              primary={role.role_name}
+              secondary={role.description || 'No description'}
             />
-            
-            <TextField
-              label="Role Description"
-              fullWidth
-              multiline
-              rows={4}
-              margin="normal"
-              value={roleData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              disabled={loading}
-              placeholder="Describe the responsibilities..."
-            />
+          </ListItem>
+        ))}
+      </List>
 
-            <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                disabled={loading}
-                sx={{ minWidth: 120 }}
-              >
-                {loading ? 'Adding...' : 'Add Role'}
-              </Button>
-              <Button
-                type="button"
-                variant="outlined"
-                onClick={() => setRoleData({ role_name: '', description: '' })}
-                disabled={loading}
-              >
-                Clear
-              </Button>
-            </Box>
-          </Box>
-        </Paper>
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)}>
+        <DialogTitle>Edit Role</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Role Name"
+            fullWidth
+            margin="normal"
+            value={editData.role_name}
+            onChange={(e) => setEditData({ ...editData, role_name: e.target.value })}
+          />
+          <TextField
+            label="Description"
+            fullWidth
+            margin="normal"
+            multiline
+            rows={3}
+            value={editData.description}
+            onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+          <Button variant="contained" color="primary" onClick={handleEditSave}>
+            Save Changes
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-        {/* Existing Roles List */}
-        <Paper elevation={2} sx={{ p: 3, maxWidth: 600 }}>
-          <Typography variant="h6" gutterBottom>
-            Existing Roles
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
-          {loadingRoles ? (
-            <Typography>Loading roles...</Typography>
-          ) : roles.length === 0 ? (
-            <Typography>No roles found.</Typography>
-          ) : (
-            roles.map(role => (
-              <Box key={role.id} sx={{ mb: 1, p: 1, borderBottom: '1px solid #ddd' }}>
-                <Typography variant="subtitle1">{role.role_name}</Typography>
-                <Typography variant="body2" color="text.secondary">{role.description}</Typography>
-              </Box>
-            ))
-          )}
-        </Paper>
-      </Box>
+      {/* Delete Confirmation */}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>Delete Role</DialogTitle>
+        <DialogContent>
+          Are you sure you want to remove role "{roleToDelete?.role_name}" from the list? <br />
+          <strong>This will not delete it from the database.</strong>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={handleDeleteRole}>
+            Remove
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
-};
+}
 
-export default AddRole;
+

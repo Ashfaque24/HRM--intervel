@@ -6,10 +6,29 @@ import bcrypt from "bcrypt"; // Use import instead of require
 const router = express.Router();
 const saltRounds = 10; // Recommended: 10–12
 
+// Input validation middleware
+const validateLoginInput = (req, res, next) => {
+  const { email, password } = req.body;
+  
+  if (!email || !password) {
+    return res.json({ loginStatus: false, Error: "Email and password are required" });
+  }
+  
+  // Email format validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.json({ loginStatus: false, Error: "Invalid email format" });
+  }
+  
+  if (password.length < 6) {
+    return res.json({ loginStatus: false, Error: "Password must be at least 6 characters long" });
+  }
+  
+  next();
+};
+
 // LOGIN ROUTE
-
-
-router.post("/login", (req, res) => {
+router.post("/login", validateLoginInput, (req, res) => {
     const sql = `
       SELECT u.*, r.role_name 
       FROM users u
@@ -17,12 +36,24 @@ router.post("/login", (req, res) => {
       WHERE u.email = ?
     `;
     con.query(sql, [req.body.email], (err, result) => {
-      if (err) return res.json({ loginStatus: false, Error: "Query error" });
+      if (err) {
+        console.error("Database error in login:", err);
+        return res.json({ loginStatus: false, Error: "Database error" });
+      }
   
       if (result.length > 0) {
         const user = result[0];
+        
+        // Check if user is active
+        if (!user.is_active) {
+          return res.json({ loginStatus: false, Error: "Account is deactivated" });
+        }
+        
         bcrypt.compare(req.body.password, user.password_hash, (err, isMatch) => {
-          if (err) return res.json({ loginStatus: false, Error: "Password check failed" });
+          if (err) {
+            console.error("Password comparison error:", err);
+            return res.json({ loginStatus: false, Error: "Authentication failed" });
+          }
   
           if (isMatch) {
             const token = jwt.sign(
@@ -34,29 +65,63 @@ router.post("/login", (req, res) => {
             res.cookie("token", token, { httpOnly: true });
             return res.json({
               loginStatus: true,
-              role: user.role_name, // <-- Use this in frontend
-              email:user.email
+              role: user.role_name,
+              email: user.email
             });
           } else {
-            return res.json({ loginStatus: false, Error: "Wrong email or password" });
+            return res.json({ loginStatus: false, Error: "Invalid email or password" });
           }
         });
       } else {
-        return res.json({ loginStatus: false, Error: "Wrong email or password" });
+        return res.json({ loginStatus: false, Error: "Invalid email or password" });
       }
     });
   });
   
 
 
-// SIGNUP ROUTE
-
-router.post("/signup", (req, res) => {
+// Signup validation middleware
+const validateSignupInput = (req, res, next) => {
   const { name, email, password } = req.body;
   
   if (!name || !email || !password) {
-    return res.json({ signupStatus: false, Error: "Missing required fields" });
+    return res.json({ signupStatus: false, Error: "All fields are required" });
   }
+  
+  // Name validation
+  if (name.length < 2) {
+    return res.json({ signupStatus: false, Error: "Name must be at least 2 characters long" });
+  }
+  if (name.length > 50) {
+    return res.json({ signupStatus: false, Error: "Name must be less than 50 characters" });
+  }
+  
+  // Email format validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.json({ signupStatus: false, Error: "Invalid email format" });
+  }
+  
+  // Password strength validation
+  if (password.length < 8) {
+    return res.json({ signupStatus: false, Error: "Password must be at least 8 characters long" });
+  }
+  if (!/(?=.*[a-z])/.test(password)) {
+    return res.json({ signupStatus: false, Error: "Password must contain at least one lowercase letter" });
+  }
+  if (!/(?=.*[A-Z])/.test(password)) {
+    return res.json({ signupStatus: false, Error: "Password must contain at least one uppercase letter" });
+  }
+  if (!/(?=.*\d)/.test(password)) {
+    return res.json({ signupStatus: false, Error: "Password must contain at least one number" });
+  }
+  
+  next();
+};
+
+// SIGNUP ROUTE
+router.post("/signup", validateSignupInput, (req, res) => {
+  const { name, email, password } = req.body;
 
   // First, check if email already exists
   const checkEmailSql = "SELECT email FROM users WHERE email = ?";
