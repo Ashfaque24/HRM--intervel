@@ -1,15 +1,12 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { Box, CssBaseline, Typography } from '@mui/material';
+import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
-import AttendanceWidget from './AttendanceWidget';
 
 const drawerWidth = 80;
 
 export default function Dashboard() {
-  const [userId] = useState(1);
-
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
@@ -18,7 +15,16 @@ export default function Dashboard() {
       <Navbar />
 
       {/* LEFT SIDEBAR */}
-      <Sidebar />
+      <Box
+        component="nav"
+        sx={{
+          width: drawerWidth,
+          flexShrink: 0,
+          zIndex: (theme) => theme.zIndex.appBar - 1,
+        }}
+      >
+        <Sidebar />
+      </Box>
 
       {/* MAIN CONTENT */}
       <Box
@@ -26,8 +32,8 @@ export default function Dashboard() {
         sx={{
           flexGrow: 1,
           p: 3,
-          mt: '64px', // same height as Navbar
-          ml: `${drawerWidth}px`
+          mt: '64px', // height of navbar
+          ml: `${drawerWidth}px`,
         }}
       >
         <Typography variant="h4" gutterBottom>
@@ -35,10 +41,11 @@ export default function Dashboard() {
         </Typography>
 
         <Typography variant="body1" sx={{ mb: 2 }}>
-          Welcome! Your attendance records will appear below:
+          Welcome to your dashboard!
         </Typography>
 
-        <AttendanceWidget userId={userId} />
+        {/* Pages like Overview / Calendar will load here */}
+        <Outlet />
       </Box>
     </Box>
   );

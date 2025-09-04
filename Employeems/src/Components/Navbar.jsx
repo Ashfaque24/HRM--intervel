@@ -1,87 +1,5 @@
 
-// import React, { useState } from 'react';
-// import {
-//   AppBar,
-//   Toolbar,
-//   Tabs,
-//   Tab,
-//   Box,
-//   IconButton,
-//   Menu,
-//   MenuItem
-// } from '@mui/material';
-// import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-
-// export default function Navbar() {
-//   const [anchorEl, setAnchorEl] = useState(null);
-
-//   // Open menu
-//   const handleMenuOpen = (event) => {
-//     setAnchorEl(event.currentTarget);
-//   };
-
-//   // Close menu
-//   const handleMenuClose = () => {
-//     setAnchorEl(null);
-//   };
-
-//   // Handle logout
-//   const handleLogout = () => {
-//     handleMenuClose();
-//     // 👉 Add your logout logic here
-//     console.log('User logged out');
-//   };
-
-//   return (
-//     <AppBar
-//       position="fixed"
-//       sx={{
-//         zIndex: (theme) => theme.zIndex.drawer + 1,
-//         bgcolor: '#243b6b'
-//       }}
-//     >
-//       <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
-//         {/* Left side: Logo + Tabs */}
-//         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-//           <img
-//             src="/Images/leaf.png"
-//             alt="Logo"
-//             style={{
-//               height: '32px',
-//               width: '32px',
-//               borderRadius: '50%',
-//               objectFit: 'contain',
-//               marginRight: '16px'
-//             }}
-//           />
-
-//           <Tabs textColor="inherit" indicatorColor="secondary">
-//             <Tab label="My Space" />
-//             <Tab label="Team" />
-//             <Tab label="Organization" />
-//           </Tabs>
-//         </Box>
-
-//         {/* Right side: Profile Icon */}
-//         <Box>
-//           <IconButton color="inherit" onClick={handleMenuOpen}>
-//             <AccountCircleIcon fontSize="large" />
-//           </IconButton>
-
-//           <Menu
-//             anchorEl={anchorEl}
-//             open={Boolean(anchorEl)}
-//             onClose={handleMenuClose}
-//           >
-//             <MenuItem onClick={handleLogout}>Logout</MenuItem>
-//           </Menu>
-//         </Box>
-//       </Toolbar>
-//     </AppBar>
-//   );
-// }
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   AppBar,
   Toolbar,
@@ -90,60 +8,65 @@ import {
   Box,
   IconButton,
   Menu,
-  MenuItem
-} from '@mui/material';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import { useNavigate } from 'react-router-dom';
+  MenuItem,
+} from "@mui/material";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function Navbar() {
   const [anchorEl, setAnchorEl] = useState(null);
+  const [value, setValue] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
+  // Highlight tab based on current URL
+  useEffect(() => {
+    if (location.pathname === "/dashboard/overview") setValue(0);
+    else if (location.pathname === "/dashboard/calendar") setValue(1);
+    else setValue(false);
+  }, [location.pathname]);
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
+  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
 
   const handleLogout = () => {
     handleMenuClose();
-
-    // Clear session data
-    localStorage.removeItem('userEmail');
-
-    // Redirect to login page
-    navigate('/login');
+    localStorage.removeItem("userEmail");
+    navigate("/"); // back to login
   };
 
   return (
     <AppBar
       position="fixed"
       sx={{
-        zIndex: (theme) => theme.zIndex.drawer + 1,
-        bgcolor: '#243b6b'
+        zIndex: (theme) => theme.zIndex.drawer + 2,
+        bgcolor: "#243b6b",
       }}
     >
-      <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
         {/* Left side: Logo + Tabs */}
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: "flex", alignItems: "center" }}>
           <img
             src="/Images/leaf.png"
             alt="Logo"
             style={{
-              height: '32px',
-              width: '32px',
-              borderRadius: '50%',
-              objectFit: 'contain',
-              marginRight: '16px'
+              height: "32px",
+              width: "32px",
+              borderRadius: "50%",
+              objectFit: "contain",
+              marginRight: "16px",
             }}
           />
 
-          {/* New Tabs */}
-          <Tabs textColor="inherit" indicatorColor="secondary">
-            <Tab label="Overview" onClick={() => navigate('/overview')} />
-            <Tab label="Calendar" onClick={() => navigate('/calendar')} />
+          {/* Controlled Tabs */}
+          <Tabs
+            value={value}
+            onChange={(e, newValue) => setValue(newValue)}
+            textColor="inherit"
+            indicatorColor="secondary"
+          >
+            <Tab label="Overview" onClick={() => navigate("/dashboard/overview")} />
+            <Tab label="Calendar" onClick={() => navigate("/dashboard/calendar")} />
           </Tabs>
         </Box>
 
@@ -153,11 +76,7 @@ export default function Navbar() {
             <AccountCircleIcon fontSize="large" />
           </IconButton>
 
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-          >
+          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
             <MenuItem onClick={handleLogout}>Logout</MenuItem>
           </Menu>
         </Box>
@@ -165,5 +84,3 @@ export default function Navbar() {
     </AppBar>
   );
 }
-
-
