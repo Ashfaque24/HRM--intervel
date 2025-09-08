@@ -25,7 +25,7 @@ const menuItems = [
   { text: 'Home', icon: <HomeIcon />, path: '/dashboard' },
   { text: 'CRM', icon: <AssessmentIcon />, path: '/crm' },
   { text: 'Performance', icon: <DashboardIcon />, path: '/performance' },
-  { text: 'Leave', icon: <EventIcon />, path: '/leave' },
+  { text: 'Leave Tracker', icon: <EventIcon />, path: '/leave' },
   { text: 'Attendance', icon: <AssignmentTurnedInIcon />, path: '/attendance' },
   { text: 'Tasks', icon: <WorkIcon />, path: '/tasks' },
   { text: 'Files', icon: <FileCopyIcon />, path: '/files' },
