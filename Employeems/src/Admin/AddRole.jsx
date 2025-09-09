@@ -19,6 +19,7 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import Sidebar from '../Components/Sidebar';
 
 export default function AddRole() {
   const [roleName, setRoleName] = useState('');
@@ -98,7 +99,7 @@ export default function AddRole() {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3 }}> 
       <Typography variant="h5" gutterBottom>
         Add New Role
       </Typography>

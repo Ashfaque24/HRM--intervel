@@ -23,7 +23,7 @@ const drawerWidth = 80;
 
 const menuItems = [
   { text: 'Home', icon: <HomeIcon />, path: '/dashboard' },
-  { text: 'CRM', icon: <AssessmentIcon />, path: '/crm' },
+  { text: 'Role', icon: <AssessmentIcon />, path: '/add-role' },
   { text: 'Performance', icon: <DashboardIcon />, path: '/performance' },
   { text: 'Leave Tracker', icon: <EventIcon />, path: '/leave' },
   { text: 'Attendance', icon: <AssignmentTurnedInIcon />, path: '/attendance' },

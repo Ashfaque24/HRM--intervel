@@ -148,6 +148,8 @@ export default function Navbar() {
     else if (location.pathname === "/dashboard/overview") setValue(0);
     else if (location.pathname === "/dashboard/calendar") setValue(1);
     else setValue(0); // fallback to 0
+
+    console.log(location.pathname)
   }, [location.pathname]);
 
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
