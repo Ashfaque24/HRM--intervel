@@ -486,9 +486,240 @@
 
 
 
-import React, { useState, useEffect } from "react";
+// import React, { useState, useEffect } from "react";
 
-// Dummy data for reporting, department members, schedule, holidays
+// // Dummy data for reporting, department members, schedule, holidays
+// const reporting = {
+//   name: "SHAHID P A",
+//   id: "INTFE0215",
+//   status: "Yet to check-in",
+// };
+
+// const departmentMembers = [
+//   { id: "INTFE0215", name: "SHAHIDA P A", status: "Yet to check-in" },
+//   { id: "INTC0002", name: "INSAF P", status: "Remote In" },
+// ];
+
+// const workSchedule = [
+//   { day: "Sun 31", label: "Weekend", hours: 0 },
+//   { day: "Mon 01", label: "Remote In", hours: 7 },
+//   { day: "Tue 02", label: "Absent", hours: 0 },
+//   { day: "Wed 03", label: "Remote In", hours: 7 },
+//   { day: "Thu 04", label: "Remote In", hours: 7 },
+//   { day: "Fri 05", label: "Absent", hours: 0 },
+// ];
+
+// const holidays = [
+//   { name: "Thiruvonam", date: "5-Sep, Friday" },
+//   { name: "Third Onam", date: "6-Sep, Saturday" },
+//   { name: "Mahanavami", date: "1-Oct, Wednesday" },
+// ];
+
+// const Overview = () => {
+//   const [isCheckedIn, setIsCheckedIn] = useState(false);
+//   const [totalElapsedTime, setTotalElapsedTime] = useState(0);
+//   const [checkInTime, setCheckInTime] = useState(null);
+//   const [displayTime, setDisplayTime] = useState("00 : 00 : 00");
+//   const [sessions, setSessions] = useState([]);
+
+//   useEffect(() => {
+//     const savedCheckIn = localStorage.getItem("checkInTime");
+//     const savedIsCheckedIn = localStorage.getItem("isCheckedIn") === "true";
+//     const savedTotalTime = parseInt(localStorage.getItem("totalElapsedTime")) || 0;
+//     const savedSessions = JSON.parse(localStorage.getItem("sessions")) || [];
+
+//     setTotalElapsedTime(savedTotalTime);
+//     setSessions(savedSessions);
+
+//     if (savedIsCheckedIn && savedCheckIn) {
+//       setIsCheckedIn(true);
+//       setCheckInTime(parseInt(savedCheckIn));
+//     }
+//   }, []);
+
+//   useEffect(() => {
+//     let interval;
+//     if (isCheckedIn && checkInTime) {
+//       interval = setInterval(() => {
+//         const now = Date.now();
+//         const currentSession = Math.floor((now - checkInTime) / 1000);
+//         updateDisplay(totalElapsedTime + currentSession);
+//       }, 1000);
+//     } else {
+//       updateDisplay(totalElapsedTime);
+//     }
+//     return () => interval && clearInterval(interval);
+//   }, [isCheckedIn, checkInTime, totalElapsedTime]);
+
+//   const updateDisplay = (timeInSec) => {
+//     const hours = Math.floor(timeInSec / 3600);
+//     const minutes = Math.floor((timeInSec % 3600) / 60);
+//     const seconds = timeInSec % 60;
+
+//     setDisplayTime(
+//       `${hours.toString().padStart(2, "0")} : ${minutes
+//         .toString()
+//         .padStart(2, "0")} : ${seconds.toString().padStart(2, "0")}`
+//     );
+//   };
+
+//   const handleCheckIn = () => {
+//     const now = Date.now();
+//     setCheckInTime(now);
+//     setIsCheckedIn(true);
+
+//     localStorage.setItem("checkInTime", now.toString());
+//     localStorage.setItem("isCheckedIn", "true");
+//   };
+
+//   const handleCheckOut = () => {
+//     if (!checkInTime) return;
+//     const now = Date.now();
+//     const sessionTime = Math.floor((now - checkInTime) / 1000);
+//     const updatedTotal = totalElapsedTime + sessionTime;
+
+//     const newSessions = [
+//       ...sessions,
+//       { checkIn: checkInTime, checkOut: now, duration: sessionTime },
+//     ];
+
+//     setSessions(newSessions);
+//     setTotalElapsedTime(updatedTotal);
+//     setCheckInTime(null);
+//     setIsCheckedIn(false);
+
+//     localStorage.setItem("sessions", JSON.stringify(newSessions));
+//     localStorage.setItem("totalElapsedTime", updatedTotal.toString());
+//     localStorage.setItem("isCheckedIn", "false");
+//     localStorage.removeItem("checkInTime");
+//   };
+
+//   const resetTimer = () => {
+//     setTotalElapsedTime(0);
+//     setCheckInTime(null);
+//     setIsCheckedIn(false);
+//     setSessions([]);
+//     setDisplayTime("00 : 00 : 00");
+
+//     localStorage.removeItem("totalElapsedTime");
+//     localStorage.removeItem("checkInTime");
+//     localStorage.removeItem("isCheckedIn");
+//     localStorage.removeItem("sessions");
+//   };
+
+//   return (
+//     <div style={{ display: "flex", gap: "24px", padding: "24px", backgroundColor: "#f4f7fa", minHeight: "100vh" }}>
+//       {/* Left Panel */}
+//       <div style={{ width: "300px", background: "white", borderRadius: "12px", padding: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+//         <div style={{ textAlign: "center" }}>
+//           <img
+//             src="/Images/profile.jpg"
+//             alt="Profile"
+//             style={{ width: "80px", height: "80px", borderRadius: "50%", marginBottom: "8px" }}
+//           />
+//           <h2 style={{ fontSize: "20px", fontWeight: "600", margin: "0 0 4px" }}>ASHFAQ K</h2>
+//           <p style={{ fontSize: "14px", color: "#666" }}>MERN Stack Developer Intern</p>
+//           <p style={{ fontWeight: "600", color: isCheckedIn ? "#16a34a" : "#ea580c" }}>
+//             {isCheckedIn ? "Remote In" : "Checked Out"}
+//           </p>
+
+//           <div style={{ fontSize: "36px", fontWeight: "600", margin: "16px 0", fontFamily: "monospace" }}>
+//             {displayTime}
+//           </div>
+
+//           {isCheckedIn ? (
+//             <button
+//               style={{ backgroundColor: "#dc2626", color: "white", padding: "8px", border: "none", borderRadius: "6px", width: "100%" }}
+//               onClick={handleCheckOut}
+//             >
+//               Check Out
+//             </button>
+//           ) : (
+//             <button
+//               style={{ backgroundColor: "#16a34a", color: "white", padding: "8px", border: "none", borderRadius: "6px", width: "100%" }}
+//               onClick={handleCheckIn}
+//             >
+//               Check In
+//             </button>
+//           )}
+
+//           {(totalElapsedTime > 0 || isCheckedIn) && (
+//             <button
+//               style={{ marginTop: "8px", backgroundColor: "white", color: "#666", border: "1px solid #ddd", padding: "8px", borderRadius: "6px", width: "100%" }}
+//               onClick={resetTimer}
+//             >
+//               Reset Timer
+//             </button>
+//           )}
+
+//           {/* Reporting */}
+//           <div style={{ marginTop: "24px", textAlign: "left" }}>
+//             <h4 style={{ fontSize: "16px", marginBottom: "8px" }}>Reporting To</h4>
+//             <div style={{ fontSize: "14px", color: "#333" }}>
+//               {reporting.id} – {reporting.name} <span style={{ color: "red" }}>{reporting.status}</span>
+//             </div>
+//           </div>
+
+//           {/* Department Members */}
+//           <div style={{ marginTop: "24px", textAlign: "left" }}>
+//             <h4 style={{ fontSize: "16px", marginBottom: "8px" }}>Department Members</h4>
+//             {departmentMembers.map((member) => (
+//               <div key={member.id} style={{ fontSize: "14px", marginBottom: "4px", color: "#333" }}>
+//                 {member.id} – {member.name} <span style={{ color: member.status === "Remote In" ? "#16a34a" : "red" }}>{member.status}</span>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Right Panel */}
+//       <div style={{ flexGrow: 1 }}>
+//         <div style={{ background: "white", borderRadius: "12px", padding: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", marginBottom: "24px" }}>
+//           <h3>Good {new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 17 ? "Afternoon" : "Evening"}, Ashfaq!</h3>
+//           <p>{isCheckedIn ? "You're currently checked in. Have a productive day!" : "Ready to start your day?"}</p>
+//         </div>
+
+//         {/* Work Schedule */}
+//         <div style={{ background: "white", borderRadius: "12px", padding: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", marginBottom: "24px" }}>
+//           <h4 style={{ marginBottom: "16px" }}>Work Schedule</h4>
+//           <div style={{ display: "flex", gap: "8px", overflowX: "auto" }}>
+//             {workSchedule.map((entry, index) => (
+//               <div key={index} style={{ flex: "0 0 80px", background: "#f1f5f9", borderRadius: "8px", padding: "8px", textAlign: "center" }}>
+//                 <div style={{ fontWeight: "600", color: "#333" }}>{entry.label}</div>
+//                 <div style={{ fontSize: "12px", color: "#555" }}>{entry.day}</div>
+//                 <div style={{ fontSize: "14px", color: "#000", marginTop: "4px" }}>{entry.hours} hrs</div>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+
+//         {/* Upcoming Holidays */}
+//         <div style={{ background: "white", borderRadius: "12px", padding: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+//           <h4 style={{ marginBottom: "16px" }}>Upcoming Holidays</h4>
+//           <div style={{ display: "flex", gap: "8px" }}>
+//             {holidays.map((holiday, index) => (
+//               <div key={index} style={{ background: "#e0f2fe", padding: "8px 12px", borderRadius: "8px", fontSize: "14px", color: "#0284c7" }}>
+//                 <div style={{ fontWeight: "600" }}>{holiday.name}</div>
+//                 <div>{holiday.date}</div>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default Overview;
+
+
+
+
+
+import React, { useState, useEffect } from "react";
+import ReactApexChart from "react-apexcharts";
+
+// Dummy data
 const reporting = {
   name: "SHAHID P A",
   id: "INTFE0215",
@@ -522,11 +753,46 @@ const Overview = () => {
   const [displayTime, setDisplayTime] = useState("00 : 00 : 00");
   const [sessions, setSessions] = useState([]);
 
+  // Chart state using workSchedule
+  const [chartState] = useState({
+    series: [
+      {
+        name: "Work Hours",
+        data: workSchedule.map((d) => d.hours),
+      },
+    ],
+    options: {
+      chart: {
+        type: "bar",
+        height: 350,
+      },
+      xaxis: {
+        categories: workSchedule.map((d) => d.day),
+      },
+      colors: ["#3b82f6"],
+      plotOptions: {
+        bar: {
+          borderRadius: 6,
+          columnWidth: "40%",
+        },
+      },
+      dataLabels: {
+        enabled: true,
+      },
+      yaxis: {
+        title: { text: "Hours" },
+      },
+    },
+  });
+
+  // Load saved state
   useEffect(() => {
     const savedCheckIn = localStorage.getItem("checkInTime");
     const savedIsCheckedIn = localStorage.getItem("isCheckedIn") === "true";
-    const savedTotalTime = parseInt(localStorage.getItem("totalElapsedTime")) || 0;
-    const savedSessions = JSON.parse(localStorage.getItem("sessions")) || [];
+    const savedTotalTime =
+      parseInt(localStorage.getItem("totalElapsedTime")) || 0;
+    const savedSessions =
+      JSON.parse(localStorage.getItem("sessions")) || [];
 
     setTotalElapsedTime(savedTotalTime);
     setSessions(savedSessions);
@@ -537,6 +803,7 @@ const Overview = () => {
     }
   }, []);
 
+  // Timer update
   useEffect(() => {
     let interval;
     if (isCheckedIn && checkInTime) {
@@ -608,35 +875,86 @@ const Overview = () => {
   };
 
   return (
-    <div style={{ display: "flex", gap: "24px", padding: "24px", backgroundColor: "#f4f7fa", minHeight: "100vh" }}>
+    <div
+      style={{
+        display: "flex",
+        gap: "24px",
+        padding: "24px",
+        backgroundColor: "#f4f7fa",
+        minHeight: "100vh",
+      }}
+    >
       {/* Left Panel */}
-      <div style={{ width: "300px", background: "white", borderRadius: "12px", padding: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+      <div
+        style={{
+          width: "300px",
+          background: "white",
+          borderRadius: "12px",
+          padding: "24px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+        }}
+      >
         <div style={{ textAlign: "center" }}>
           <img
             src="/Images/profile.jpg"
             alt="Profile"
-            style={{ width: "80px", height: "80px", borderRadius: "50%", marginBottom: "8px" }}
+            style={{
+              width: "80px",
+              height: "80px",
+              borderRadius: "50%",
+              marginBottom: "8px",
+            }}
           />
-          <h2 style={{ fontSize: "20px", fontWeight: "600", margin: "0 0 4px" }}>ASHFAQ K</h2>
-          <p style={{ fontSize: "14px", color: "#666" }}>MERN Stack Developer Intern</p>
-          <p style={{ fontWeight: "600", color: isCheckedIn ? "#16a34a" : "#ea580c" }}>
+          <h2 style={{ fontSize: "20px", fontWeight: "600", margin: "0 0 4px" }}>
+            ASHFAQ K
+          </h2>
+          <p style={{ fontSize: "14px", color: "#666" }}>
+            MERN Stack Developer Intern
+          </p>
+          <p
+            style={{
+              fontWeight: "600",
+              color: isCheckedIn ? "#16a34a" : "#ea580c",
+            }}
+          >
             {isCheckedIn ? "Remote In" : "Checked Out"}
           </p>
 
-          <div style={{ fontSize: "36px", fontWeight: "600", margin: "16px 0", fontFamily: "monospace" }}>
+          <div
+            style={{
+              fontSize: "36px",
+              fontWeight: "600",
+              margin: "16px 0",
+              fontFamily: "monospace",
+            }}
+          >
             {displayTime}
           </div>
 
           {isCheckedIn ? (
             <button
-              style={{ backgroundColor: "#dc2626", color: "white", padding: "8px", border: "none", borderRadius: "6px", width: "100%" }}
+              style={{
+                backgroundColor: "#dc2626",
+                color: "white",
+                padding: "8px",
+                border: "none",
+                borderRadius: "6px",
+                width: "100%",
+              }}
               onClick={handleCheckOut}
             >
               Check Out
             </button>
           ) : (
             <button
-              style={{ backgroundColor: "#16a34a", color: "white", padding: "8px", border: "none", borderRadius: "6px", width: "100%" }}
+              style={{
+                backgroundColor: "#16a34a",
+                color: "white",
+                padding: "8px",
+                border: "none",
+                borderRadius: "6px",
+                width: "100%",
+              }}
               onClick={handleCheckIn}
             >
               Check In
@@ -645,7 +963,15 @@ const Overview = () => {
 
           {(totalElapsedTime > 0 || isCheckedIn) && (
             <button
-              style={{ marginTop: "8px", backgroundColor: "white", color: "#666", border: "1px solid #ddd", padding: "8px", borderRadius: "6px", width: "100%" }}
+              style={{
+                marginTop: "8px",
+                backgroundColor: "white",
+                color: "#666",
+                border: "1px solid #ddd",
+                padding: "8px",
+                borderRadius: "6px",
+                width: "100%",
+              }}
               onClick={resetTimer}
             >
               Reset Timer
@@ -654,18 +980,38 @@ const Overview = () => {
 
           {/* Reporting */}
           <div style={{ marginTop: "24px", textAlign: "left" }}>
-            <h4 style={{ fontSize: "16px", marginBottom: "8px" }}>Reporting To</h4>
+            <h4 style={{ fontSize: "16px", marginBottom: "8px" }}>
+              Reporting To
+            </h4>
             <div style={{ fontSize: "14px", color: "#333" }}>
-              {reporting.id} – {reporting.name} <span style={{ color: "red" }}>{reporting.status}</span>
+              {reporting.id} – {reporting.name}{" "}
+              <span style={{ color: "red" }}>{reporting.status}</span>
             </div>
           </div>
 
           {/* Department Members */}
           <div style={{ marginTop: "24px", textAlign: "left" }}>
-            <h4 style={{ fontSize: "16px", marginBottom: "8px" }}>Department Members</h4>
+            <h4 style={{ fontSize: "16px", marginBottom: "8px" }}>
+              Department Members
+            </h4>
             {departmentMembers.map((member) => (
-              <div key={member.id} style={{ fontSize: "14px", marginBottom: "4px", color: "#333" }}>
-                {member.id} – {member.name} <span style={{ color: member.status === "Remote In" ? "#16a34a" : "red" }}>{member.status}</span>
+              <div
+                key={member.id}
+                style={{
+                  fontSize: "14px",
+                  marginBottom: "4px",
+                  color: "#333",
+                }}
+              >
+                {member.id} – {member.name}{" "}
+                <span
+                  style={{
+                    color:
+                      member.status === "Remote In" ? "#16a34a" : "red",
+                  }}
+                >
+                  {member.status}
+                </span>
               </div>
             ))}
           </div>
@@ -674,31 +1020,107 @@ const Overview = () => {
 
       {/* Right Panel */}
       <div style={{ flexGrow: 1 }}>
-        <div style={{ background: "white", borderRadius: "12px", padding: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", marginBottom: "24px" }}>
-          <h3>Good {new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 17 ? "Afternoon" : "Evening"}, Ashfaq!</h3>
-          <p>{isCheckedIn ? "You're currently checked in. Have a productive day!" : "Ready to start your day?"}</p>
+        {/* Greeting */}
+        <div
+          style={{
+            background: "white",
+            borderRadius: "12px",
+            padding: "24px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            marginBottom: "24px",
+          }}
+        >
+          <h3>
+            Good{" "}
+            {new Date().getHours() < 12
+              ? "Morning"
+              : new Date().getHours() < 17
+              ? "Afternoon"
+              : "Evening"}
+            , Ashfaq!
+          </h3>
+          <p>
+            {isCheckedIn
+              ? "You're currently checked in. Have a productive day!"
+              : "Ready to start your day?"}
+          </p>
         </div>
 
-        {/* Work Schedule */}
-        <div style={{ background: "white", borderRadius: "12px", padding: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", marginBottom: "24px" }}>
+        {/* Work Schedule + Chart */}
+        <div
+          style={{
+            background: "white",
+            borderRadius: "12px",
+            padding: "24px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            marginBottom: "24px",
+          }}
+        >
           <h4 style={{ marginBottom: "16px" }}>Work Schedule</h4>
           <div style={{ display: "flex", gap: "8px", overflowX: "auto" }}>
             {workSchedule.map((entry, index) => (
-              <div key={index} style={{ flex: "0 0 80px", background: "#f1f5f9", borderRadius: "8px", padding: "8px", textAlign: "center" }}>
-                <div style={{ fontWeight: "600", color: "#333" }}>{entry.label}</div>
-                <div style={{ fontSize: "12px", color: "#555" }}>{entry.day}</div>
-                <div style={{ fontSize: "14px", color: "#000", marginTop: "4px" }}>{entry.hours} hrs</div>
+              <div
+                key={index}
+                style={{
+                  flex: "0 0 80px",
+                  background: "#f1f5f9",
+                  borderRadius: "8px",
+                  padding: "8px",
+                  textAlign: "center",
+                }}
+              >
+                <div style={{ fontWeight: "600", color: "#333" }}>
+                  {entry.label}
+                </div>
+                <div style={{ fontSize: "12px", color: "#555" }}>
+                  {entry.day}
+                </div>
+                <div
+                  style={{
+                    fontSize: "14px",
+                    color: "#000",
+                    marginTop: "4px",
+                  }}
+                >
+                  {entry.hours} hrs
+                </div>
               </div>
             ))}
+          </div>
+
+          {/* Chart */}
+          <div style={{ marginTop: "24px" }}>
+            <ReactApexChart
+              options={chartState.options}
+              series={chartState.series}
+              type="bar"
+              height={350}
+            />
           </div>
         </div>
 
         {/* Upcoming Holidays */}
-        <div style={{ background: "white", borderRadius: "12px", padding: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+        <div
+          style={{
+            background: "white",
+            borderRadius: "12px",
+            padding: "24px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          }}
+        >
           <h4 style={{ marginBottom: "16px" }}>Upcoming Holidays</h4>
           <div style={{ display: "flex", gap: "8px" }}>
             {holidays.map((holiday, index) => (
-              <div key={index} style={{ background: "#e0f2fe", padding: "8px 12px", borderRadius: "8px", fontSize: "14px", color: "#0284c7" }}>
+              <div
+                key={index}
+                style={{
+                  background: "#e0f2fe",
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  color: "#0284c7",
+                }}
+              >
                 <div style={{ fontWeight: "600" }}>{holiday.name}</div>
                 <div>{holiday.date}</div>
               </div>

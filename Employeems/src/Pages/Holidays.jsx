@@ -1,174 +1,267 @@
 
 
-// import React, { useState } from "react";
-// import {
-//   Box,
-//   Typography,
-//   MenuItem,
-//   Select,
-//   FormControl,
-//   InputLabel,
-//   Paper,
-//   List,
-//   ListItem,
-//   ListItemText,
-// } from "@mui/material";
-// import HolidaysData from "../Data/HolidaysData";
-
-// export default function Holidays() {
-//   const [selectedYear, setSelectedYear] = useState(2025);
-
-//   const currentYearData = HolidaysData.find(
-//     (yearData) => yearData.year === selectedYear
-//   );
-
-//   return (
-//     <Box sx={{ p: 3 }}>
-//       {/* Top Section: Title + Year Selector */}
-//       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-//         <Typography variant="h5" fontWeight="bold">
-//           Holiday Calendar - {selectedYear}
-//         </Typography>
-
-//         <FormControl size="small" sx={{ minWidth: 150 }}>
-//           <InputLabel>Year</InputLabel>
-//           <Select
-//             value={selectedYear}
-//             onChange={(e) => setSelectedYear(e.target.value)}
-//             label="Year"
-//           >
-//             {HolidaysData.map((data) => (
-//               <MenuItem key={data.year} value={data.year}>
-//                 {data.year}
-//               </MenuItem>
-//             ))}
-//           </Select>
-//         </FormControl>
-//       </Box>
-
-//       {/* Holiday List */}
-//       <Paper sx={{ p: 2 }}>
-//         <Typography variant="h6" gutterBottom>
-//           Holidays in {selectedYear}
-//         </Typography>
-//         <List>
-//           {currentYearData.holidays.map((holiday, index) => (
-//             <ListItem key={index} divider>
-//               <ListItemText
-//                 primary={holiday.holidayName}
-//                 secondary={new Date(holiday.date).toLocaleDateString("en-IN", {
-//                   day: "2-digit",
-//                   month: "short",
-//                   year: "numeric",
-//                 })}
-//               />
-//             </ListItem>
-//           ))}
-//         </List>
-//       </Paper>
-//     </Box>
-//   );
-// }
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
-  MenuItem,
+  Paper,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
   Select,
+  MenuItem,
   FormControl,
   InputLabel,
-  Paper
 } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
-import HolidaysData from "../Data/HolidaysData";
+import { DataGrid, GridActionsCellItem } from "@mui/x-data-grid";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 export default function Holidays() {
-  const [selectedYear, setSelectedYear] = useState(2025);
+  const [holidays, setHolidays] = useState([]);
+  const [filteredHolidays, setFilteredHolidays] = useState([]);
+  const [year, setYear] = useState("all");
+  const [loading, setLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [form, setForm] = useState({ id: null, holidayName: "", date: "", description: "" });
+  const [isEdit, setIsEdit] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const currentYearData = HolidaysData.find(
-    (yearData) => yearData.year === selectedYear
-  );
+  // Fetch holidays from API
+  const fetchHolidays = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("http://localhost:3000/api/holidays");
+      const data = await res.json();
+      setHolidays(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Failed to fetch holidays", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Columns using renderCell instead of valueGetter
+  useEffect(() => {
+    fetchHolidays();
+  }, []);
+
+  // Extract unique years from holidays for the year selector
+  const years = [...new Set(holidays.map(h => new Date(h.date).getFullYear()))].sort((a, b) => b - a);
+
+  // Filter holidays by selected year whenever holidays or year changes
+  useEffect(() => {
+    if (year === "all") {
+      setFilteredHolidays(holidays);
+    } else {
+      setFilteredHolidays(holidays.filter(h => {
+        const holidayYear = new Date(h.date).getFullYear().toString();
+        return holidayYear === year.toString();
+      }));
+    }
+  }, [holidays, year]);
+
+  // Open add dialog
+  const openAddDialog = () => {
+    setForm({ id: null, holidayName: "", date: "", description: "" });
+    setIsEdit(false);
+    setDialogOpen(true);
+  };
+
+  // Open edit dialog
+  const openEditDialog = (holiday) => {
+    const formattedDate = holiday.date ? holiday.date.split("T")[0] : "";
+    setForm({
+      id: holiday.id,
+      holidayName: holiday.holiday_name,
+      date: formattedDate,
+      description: holiday.description || "",
+    });
+    setIsEdit(true);
+    setDialogOpen(true);
+  };
+
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Save (add or update)
+  const handleSave = async () => {
+    const { id, holidayName, date, description } = form;
+    if (!holidayName || !date) {
+      alert("Please fill in Holiday Name and Date");
+      return;
+    }
+    setSaving(true);
+    try {
+      let res;
+      if (isEdit) {
+        res = await fetch(`http://localhost:3000/api/holidays/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ holidayName, date, description }),
+        });
+      } else {
+        res = await fetch("http://localhost:3000/api/holidays", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ holidayName, date, description }),
+        });
+      }
+      if (res.ok) {
+        fetchHolidays();
+        setDialogOpen(false);
+      } else {
+        const errorData = await res.json();
+        alert("Failed to save holiday: " + (errorData.message || res.statusText));
+      }
+    } catch (error) {
+      alert("Failed to save holiday: " + error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Soft delete
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this holiday?")) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`http://localhost:3000/api/holidays/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        fetchHolidays();
+      } else {
+        alert("Failed to delete holiday");
+      }
+    } catch (error) {
+      alert("Failed to delete holiday: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const columns = [
-    { field: "id", headerName: "ID", width: 80 },
-    { field: "holidayName", headerName: "Name", flex: 1 },
+    { field: "id", headerName: "ID", width: 70 },
+    { field: "holiday_name", headerName: "Name", flex: 1 },
     {
       field: "date",
       headerName: "Date",
       flex: 1,
-      renderCell: (params) => (
-        <>
-          {new Date(params.value).toLocaleDateString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-            weekday: "short",
-          })}
-        </>
-      ),
+      renderCell: (params) => {
+        const dateValue = params.value;
+        if (!dateValue) return "";
+        const d = new Date(dateValue);
+        if (isNaN(d.getTime())) return "Invalid Date";
+        return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+      },
     },
-    { field: "location", headerName: "Location", flex: 1 },
-    { field: "shifts", headerName: "Shifts", flex: 1 },
-    { field: "classification", headerName: "Classification", flex: 1 },
-    { field: "description", headerName: "Description", flex: 1 },
+    { field: "description", headerName: "Description", flex: 2 },
+    {
+      field: "actions",
+      type: "actions",
+      headerName: "Actions",
+      width: 120,
+      getActions: (params) => [
+        <GridActionsCellItem
+          icon={<EditIcon />}
+          label="Edit"
+          onClick={() => openEditDialog(params.row)}
+          key="edit"
+        />,
+        <GridActionsCellItem
+          icon={<DeleteIcon />}
+          label="Delete"
+          onClick={() => handleDelete(params.id)}
+          key="delete"
+        />,
+      ],
+    },
   ];
-
-  // Rows
-  const rows =
-    currentYearData?.holidays.map((holiday, index) => ({
-      id: index + 1,
-      holidayName: holiday.holidayName,
-      date: holiday.date,
-      location: holiday.location || "All Locations",
-      shifts: holiday.shifts || "All Shifts",
-      classification: holiday.classification || "Holiday",
-      description: holiday.description || holiday.holidayName,
-    })) || [];
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Top Section: Title + Year Selector */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
-        }}
-      >
+      <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 2 }}>
         <Typography variant="h5" fontWeight="bold">
-          Holiday Calendar - {selectedYear}
+          Holiday Calendar
         </Typography>
-
-        <FormControl size="small" sx={{ minWidth: 150 }}>
+        <FormControl size="small" sx={{ minWidth: 120 }}>
           <InputLabel>Year</InputLabel>
-          <Select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
-            label="Year"
-          >
-            {HolidaysData.map((data) => (
-              <MenuItem key={data.year} value={data.year}>
-                {data.year}
+          <Select value={year} label="Year" onChange={(e) => setYear(e.target.value)}>
+            <MenuItem value="all">All Years</MenuItem>
+            {years.map((y) => (
+              <MenuItem key={y} value={y.toString()}>
+                {y}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
+        <Button variant="contained" onClick={openAddDialog}>
+          Add Holiday
+        </Button>
       </Box>
-
-      {/* DataGrid */}
-      <Paper sx={{ height: 500, width: "100%", p: 2 }}>
+      <Paper sx={{ height: 500, width: "100%" }}>
         <DataGrid
-          rows={rows}
+          rows={filteredHolidays}
           columns={columns}
-          pageSizeOptions={[10, 20, 50]}
-          initialState={{
-            pagination: { paginationModel: { pageSize: 10 } },
-          }}
+          pageSizeOptions={[10, 25, 50, 100]}
+          loading={loading}
+          getRowId={(row) => row.id}
           disableRowSelectionOnClick
+          initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
         />
       </Paper>
+      <Dialog open={dialogOpen} onClose={() => !saving && setDialogOpen(false)}>
+        <DialogTitle>{isEdit ? "Edit Holiday" : "Add Holiday"}</DialogTitle>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            name="holidayName"
+            label="Holiday Name"
+            fullWidth
+            value={form.holidayName}
+            onChange={handleFormChange}
+            disabled={saving}
+          />
+          <TextField
+            margin="dense"
+            name="date"
+            label="Date"
+            type="date"
+            fullWidth
+            value={form.date}
+            onChange={handleFormChange}
+            InputLabelProps={{ shrink: true }}
+            disabled={saving}
+          />
+          <TextField
+            margin="dense"
+            name="description"
+            label="Description"
+            fullWidth
+            multiline
+            minRows={2}
+            value={form.description}
+            onChange={handleFormChange}
+            disabled={saving}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => !saving && setDialogOpen(false)} disabled={saving}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleSave}
+            disabled={!form.holidayName || !form.date || saving}
+          >
+            {isEdit ? "Update" : "Add"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
+
