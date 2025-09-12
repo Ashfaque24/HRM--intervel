@@ -24,7 +24,7 @@ const drawerWidth = 80;
 const menuItems = [
   { text: 'Home', icon: <HomeIcon />, path: '/dashboard' },
   { text: 'Role', icon: <AssessmentIcon />, path: '/add-role' },
-  { text: 'Performance', icon: <DashboardIcon />, path: '/performance' },
+  { text: 'Goal', icon: <DashboardIcon />, path: '/goaloverview' },  // Updated path here
   { text: 'Leave Tracker', icon: <EventIcon />, path: '/leave' },
   { text: 'Attendance', icon: <AssignmentTurnedInIcon />, path: '/attendance' },
   { text: 'Tasks', icon: <WorkIcon />, path: '/tasks' },
@@ -52,8 +52,10 @@ export default function Sidebar() {
           flexDirection: 'column',
           alignItems: 'center',
           paddingTop: 2,
-          top: '64px', // below navbar
+          top: '64px', // to appear below navbar
           zIndex: (theme) => theme.zIndex.drawer,
+          height: 'calc(100vh - 64px)',
+          position: 'fixed'
         },
       }}
     >

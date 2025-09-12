@@ -144,42 +144,43 @@ export default function Holidays() {
   };
 
   const columns = [
-    { field: "id", headerName: "ID", width: 70 },
-    { field: "holiday_name", headerName: "Name", flex: 1 },
-    {
-      field: "date",
-      headerName: "Date",
-      flex: 1,
-      renderCell: (params) => {
-        const dateValue = params.value;
-        if (!dateValue) return "";
-        const d = new Date(dateValue);
-        if (isNaN(d.getTime())) return "Invalid Date";
-        return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
-      },
+  // { field: "id", headerName: "ID", width: 70 }, // Remove or comment this line
+  { field: "holiday_name", headerName: "Name", flex: 1 },
+  {
+    field: "date",
+    headerName: "Date",
+    flex: 1,
+    renderCell: (params) => {
+      const dateValue = params.value;
+      if (!dateValue) return "";
+      const d = new Date(dateValue);
+      if (isNaN(d.getTime())) return "Invalid Date";
+      return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
     },
-    { field: "description", headerName: "Description", flex: 2 },
-    {
-      field: "actions",
-      type: "actions",
-      headerName: "Actions",
-      width: 120,
-      getActions: (params) => [
-        <GridActionsCellItem
-          icon={<EditIcon />}
-          label="Edit"
-          onClick={() => openEditDialog(params.row)}
-          key="edit"
-        />,
-        <GridActionsCellItem
-          icon={<DeleteIcon />}
-          label="Delete"
-          onClick={() => handleDelete(params.id)}
-          key="delete"
-        />,
-      ],
-    },
-  ];
+  },
+  { field: "description", headerName: "Description", flex: 2 },
+  {
+    field: "actions",
+    type: "actions",
+    headerName: "Actions",
+    width: 120,
+    getActions: (params) => [
+      <GridActionsCellItem
+        icon={<EditIcon />}
+        label="Edit"
+        onClick={() => openEditDialog(params.row)}
+        key="edit"
+      />,
+      <GridActionsCellItem
+        icon={<DeleteIcon />}
+        label="Delete"
+        onClick={() => handleDelete(params.id)}
+        key="delete"
+      />,
+    ],
+  },
+];
+
 
   return (
     <Box sx={{ p: 3 }}>
